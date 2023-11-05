@@ -48,7 +48,9 @@ func (cpu *CPU6502) Init() {
 		N: (1 << 7),
 	}
 
-	cpu.instructions = []*Instruction{}
+	cpu.instructions = []*Instruction{
+		{"BRK", cpu.brk, cpu.imm, 7}, {"ORA", cpu.ora, cpu.izx, 6}, {"???", cpu.xxx, cpu.imp, 2}, {"???", cpu.xxx, cpu.imp, 8}, {"???", cpu.nop, cpu.imp, 3}, {"???", cpu.xxx, cpu.imp, 8}, {"ORA", cpu.ora, cpu.zp0, 3}, {"ASL", cpu.asl, cpu.zp0, 5}, {"???", cpu.xxx, cpu.imp, 5}, {"PHP", cpu.php, cpu.imp, 3}, {"ORA", cpu.ora, cpu.imm, 2}, {"ASL", cpu.asl, cpu.imp, 2}, {"???", cpu.xxx, cpu.imp, 2}, {"???", cpu.nop, cpu.imp, 4}, {"ORA", cpu.ora, cpu.abs, 4}, {"ASL", cpu.asl, cpu.abs, 6}, {"???", cpu.xxx, cpu.imp, 6},
+	}
 }
 
 func (cpu *CPU6502) ConnectBus(b *Bus) {
