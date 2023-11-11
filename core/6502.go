@@ -29,6 +29,7 @@ type CPU6502 struct {
 	bus          *Bus
 	flags        *Flags6502
 	fetched      uint8
+	isImp        bool
 	addrAbs      uint16
 	addrRel      uint16
 	opcode       uint8
@@ -82,10 +83,10 @@ func (cpu *CPU6502) Read(addr uint16) uint8 {
 
 func (cpu *CPU6502) clock() {
 	if cpu.cycles == 0 {
-		opcode := cpu.Read(cpu.Pc)
+		cpu.opcode = cpu.Read(cpu.Pc)
 		cpu.Pc++
 
-		instruction := cpu.instructions[opcode]
+		instruction := cpu.instructions[cpu.opcode]
 
 		cpu.cycles = instruction.Cycles
 
@@ -103,7 +104,12 @@ func (cpu *CPU6502) irq()   {}
 func (cpu *CPU6502) nmi()   {}
 
 func (cpu *CPU6502) fetch() uint8 {
-	return 0
+	if cpu.isImp {
+		cpu.isImp = false
+		return cpu.fetched
+	}
+
+	return cpu.Read(cpu.addrAbs)
 }
 
 func (cpu *CPU6502) getFlag(flag uint8) uint8 {
@@ -125,6 +131,8 @@ func (cpu *CPU6502) setFlag(flag uint8, value bool) {
 // Addressing Modes
 func (cpu *CPU6502) imp() uint8 {
 	cpu.fetched = cpu.A
+	cpu.isImp = true
+
 	return 0
 }
 
@@ -283,7 +291,13 @@ func (cpu *CPU6502) adc() uint8 {
 }
 
 func (cpu *CPU6502) and() uint8 {
-	return 0
+	cpu.fetch()
+	cpu.A = cpu.A & cpu.fetched
+
+	cpu.setFlag(cpu.flags.Z, cpu.A == 0x00)
+	cpu.setFlag(cpu.flags.N, (cpu.A&0x80) > 0)
+
+	return 1
 }
 
 func (cpu *CPU6502) asl() uint8 {
