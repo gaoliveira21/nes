@@ -235,15 +235,45 @@ func (cpu *CPU6502) ind() uint8 {
 	return 0
 }
 
-func (cpu *CPU6502) izy() uint8 {
+func (cpu *CPU6502) izx() uint8 {
+	b := cpu.Read(cpu.Pc)
+	cpu.Pc++
+
+	lb := uint16(cpu.Read((uint16(b + cpu.X)) & 0x00FF))
+	hb := uint16(cpu.Read(uint16(b+cpu.X+1) & 0x00FF))
+
+	cpu.addrAbs = (hb << 8) | lb
+
 	return 0
 }
 
-func (cpu *CPU6502) izx() uint8 {
+func (cpu *CPU6502) izy() uint8 {
+	b := uint16(cpu.Read(cpu.Pc))
+	cpu.Pc++
+
+	lb := uint16(cpu.Read(b & 0x00FF))
+	hb := uint16(cpu.Read((b + 1) & 0x00FF))
+
+	pg := hb << 8
+
+	cpu.addrAbs = pg | lb
+	cpu.addrAbs += uint16(cpu.Y)
+
+	if (cpu.addrAbs & 0xFF00) != pg {
+		return 1
+	}
+
 	return 0
 }
 
 func (cpu *CPU6502) rel() uint8 {
+	cpu.addrRel = uint16(cpu.Read(cpu.Pc))
+	cpu.Pc++
+
+	if (cpu.addrRel & 0x80) > 0 {
+		cpu.addrRel |= 0xFF00
+	}
+
 	return 0
 }
 
