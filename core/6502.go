@@ -80,7 +80,24 @@ func (cpu *CPU6502) Read(addr uint16) uint8 {
 	return cpu.bus.Read(addr, false)
 }
 
-func (cpu *CPU6502) clock() {}
+func (cpu *CPU6502) clock() {
+	if cpu.cycles == 0 {
+		opcode := cpu.Read(cpu.Pc)
+		cpu.Pc++
+
+		instruction := cpu.instructions[opcode]
+
+		cpu.cycles = instruction.Cycles
+
+		addrAdditionalCycle := instruction.AddrMode()
+		opAdditionalCycle := instruction.Operation()
+
+		cpu.cycles += (addrAdditionalCycle & opAdditionalCycle)
+	}
+
+	cpu.cycles--
+}
+
 func (cpu *CPU6502) reset() {}
 func (cpu *CPU6502) irq()   {}
 func (cpu *CPU6502) nmi()   {}
@@ -89,24 +106,136 @@ func (cpu *CPU6502) fetch() uint8 {
 	return 0
 }
 
+func (cpu *CPU6502) getFlag(flag uint8) uint8 {
+	if (cpu.Status & flag) > 0 {
+		return 1
+	}
+
+	return 0
+}
+
+func (cpu *CPU6502) setFlag(flag uint8, value bool) {
+	if value {
+		cpu.Status |= flag
+	} else {
+		cpu.Status &= ^flag
+	}
+}
+
 // Addressing Modes
 func (cpu *CPU6502) imp() uint8 {
+	cpu.fetched = cpu.A
+	return 0
+}
+
+func (cpu *CPU6502) imm() uint8 {
+	cpu.addrAbs = cpu.Pc
+	cpu.Pc++
+
 	return 0
 }
 
 func (cpu *CPU6502) zp0() uint8 {
+	b := uint16(cpu.Read(cpu.Pc))
+	cpu.Pc++
+
+	cpu.addrAbs = b & 0x00FF
+
+	return 0
+}
+
+func (cpu *CPU6502) zpx() uint8 {
+	b := uint16(cpu.Read(cpu.Pc) + cpu.X)
+	cpu.Pc++
+
+	cpu.addrAbs = b & 0x00FF
+
 	return 0
 }
 
 func (cpu *CPU6502) zpy() uint8 {
+	b := uint16(cpu.Read(cpu.Pc) + cpu.Y)
+	cpu.Pc++
+
+	cpu.addrAbs = b & 0x00FF
+
 	return 0
 }
 
 func (cpu *CPU6502) abs() uint8 {
+	lb := uint16(cpu.Read(cpu.Pc))
+	cpu.Pc++
+
+	hb := uint16(cpu.Read(cpu.Pc))
+	cpu.Pc++
+
+	cpu.addrAbs = (hb << 8) | lb
+
+	return 0
+}
+
+func (cpu *CPU6502) abx() uint8 {
+	lb := uint16(cpu.Read(cpu.Pc))
+	cpu.Pc++
+
+	hb := uint16(cpu.Read(cpu.Pc))
+	cpu.Pc++
+
+	pg := hb << 8
+
+	cpu.addrAbs = pg | lb
+	cpu.addrAbs += uint16(cpu.X)
+
+	// Incrementing addrAbs might change page, so we'll need an extra cycle
+	if (cpu.addrAbs & 0xFF00) != pg {
+		return 1
+	}
+
 	return 0
 }
 
 func (cpu *CPU6502) aby() uint8 {
+	lb := uint16(cpu.Read(cpu.Pc))
+	cpu.Pc++
+
+	hb := uint16(cpu.Read(cpu.Pc))
+	cpu.Pc++
+
+	pg := hb << 8
+
+	cpu.addrAbs = pg | lb
+	cpu.addrAbs += uint16(cpu.Y)
+
+	if (cpu.addrAbs & 0xFF00) != pg {
+		return 1
+	}
+
+	return 0
+}
+
+func (cpu *CPU6502) ind() uint8 {
+	lb := uint16(cpu.Read(cpu.Pc))
+	cpu.Pc++
+
+	hb := uint16(cpu.Read(cpu.Pc))
+	cpu.Pc++
+
+	ptr := (hb << 8) | lb
+
+	newHb := uint16(cpu.Read(ptr+1)) << 8
+	newLb := uint16(cpu.Read(ptr))
+
+	// Simulate page boundary hardware bug
+	if lb == 0x00FF {
+		newHb = uint16(cpu.Read(ptr&0xFF00)) << 8
+	}
+
+	cpu.addrAbs = newHb | newLb
+
+	return 0
+}
+
+func (cpu *CPU6502) izy() uint8 {
 	return 0
 }
 
@@ -114,27 +243,7 @@ func (cpu *CPU6502) izx() uint8 {
 	return 0
 }
 
-func (cpu *CPU6502) imm() uint8 {
-	return 0
-}
-
-func (cpu *CPU6502) zpx() uint8 {
-	return 0
-}
-
 func (cpu *CPU6502) rel() uint8 {
-	return 0
-}
-
-func (cpu *CPU6502) abx() uint8 {
-	return 0
-}
-
-func (cpu *CPU6502) ind() uint8 {
-	return 0
-}
-
-func (cpu *CPU6502) izy() uint8 {
 	return 0
 }
 
