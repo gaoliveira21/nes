@@ -93,6 +93,7 @@ func (cpu *CPU6502) clock() {
 		addrAdditionalCycle := instruction.AddrMode()
 		opAdditionalCycle := instruction.Operation()
 
+		cpu.isImp = false
 		cpu.cycles += (addrAdditionalCycle & opAdditionalCycle)
 	}
 
@@ -105,7 +106,6 @@ func (cpu *CPU6502) nmi()   {}
 
 func (cpu *CPU6502) fetch() uint8 {
 	if cpu.isImp {
-		cpu.isImp = false
 		return cpu.fetched
 	}
 
