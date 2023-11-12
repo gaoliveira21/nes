@@ -119,8 +119,52 @@ func (cpu *CPU6502) reset() {
 
 	cpu.cycles = 8
 }
-func (cpu *CPU6502) irq() {}
-func (cpu *CPU6502) nmi() {}
+
+func (cpu *CPU6502) irq() {
+	if cpu.getFlag(cpu.flags.I) == 0 {
+		cpu.Write(0x0100+uint16(cpu.Sp), uint8((cpu.Pc>>8)&0x00FF))
+		cpu.Sp--
+
+		cpu.Write(0x0100+uint16(cpu.Sp), uint8(cpu.Pc&0x00FF))
+		cpu.Sp--
+
+		cpu.setFlag(cpu.flags.B, false)
+		cpu.setFlag(cpu.flags.U, true)
+		cpu.setFlag(cpu.flags.I, true)
+		cpu.Write(0x0100+uint16(cpu.Sp), cpu.Status)
+		cpu.Sp--
+
+		cpu.addrAbs = 0xFFFE
+		lb := uint16(cpu.Read(cpu.addrAbs))
+		hb := uint16(cpu.Read(cpu.addrAbs + 1))
+
+		cpu.Pc = (hb << 8) | lb
+
+		cpu.cycles = 7
+	}
+}
+
+func (cpu *CPU6502) nmi() {
+	cpu.Write(0x0100+uint16(cpu.Sp), uint8((cpu.Pc>>8)&0x00FF))
+	cpu.Sp--
+
+	cpu.Write(0x0100+uint16(cpu.Sp), uint8(cpu.Pc&0x00FF))
+	cpu.Sp--
+
+	cpu.setFlag(cpu.flags.B, false)
+	cpu.setFlag(cpu.flags.U, true)
+	cpu.setFlag(cpu.flags.I, true)
+	cpu.Write(0x0100+uint16(cpu.Sp), cpu.Status)
+	cpu.Sp--
+
+	cpu.addrAbs = 0xFFFA
+	lb := uint16(cpu.Read(cpu.addrAbs))
+	hb := uint16(cpu.Read(cpu.addrAbs + 1))
+
+	cpu.Pc = (hb << 8) | lb
+
+	cpu.cycles = 8
+}
 
 func (cpu *CPU6502) fetch() uint8 {
 	if cpu.isImp {
@@ -599,6 +643,21 @@ func (cpu *CPU6502) ror() uint8 {
 }
 
 func (cpu *CPU6502) rti() uint8 {
+	// Pull status register from stack and ignore B and U flags
+	cpu.Sp++
+	cpu.Status = cpu.Read(0x0100 + uint16(cpu.Sp))
+	cpu.Status &= ^cpu.flags.B
+	cpu.Status &= ^cpu.flags.U
+
+	// Pull program counter from stack
+	cpu.Sp++
+	lb := uint16(cpu.Read(0x0100 + uint16(cpu.Sp)))
+
+	cpu.Sp++
+	hb := uint16(cpu.Read(0x0100 + uint16(cpu.Sp)))
+
+	cpu.Pc = (hb << 8) | lb
+
 	return 0
 }
 
