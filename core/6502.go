@@ -287,7 +287,21 @@ func (cpu *CPU6502) rel() uint8 {
 
 // Opcodes Start
 func (cpu *CPU6502) adc() uint8 {
-	return 0
+	cpu.fetch()
+
+	tmp := uint16(cpu.A) + uint16(cpu.fetched) + uint16(cpu.getFlag(cpu.flags.C))
+	cpu.setFlag(cpu.flags.C, tmp > 255)
+	cpu.setFlag(cpu.flags.Z, (tmp&0x00FF) == 0)
+	cpu.setFlag(cpu.flags.N, (tmp&0x80) > 0)
+
+	cpu.setFlag(
+		cpu.flags.V,
+		((^(uint16(cpu.A)^uint16(cpu.fetched))&(uint16(cpu.A)^tmp))&0x0080) > 0,
+	)
+
+	cpu.A = uint8(tmp & 0x00FF)
+
+	return 1
 }
 
 func (cpu *CPU6502) and() uint8 {
@@ -295,7 +309,7 @@ func (cpu *CPU6502) and() uint8 {
 	cpu.A = cpu.A & cpu.fetched
 
 	cpu.setFlag(cpu.flags.Z, cpu.A == 0x00)
-	cpu.setFlag(cpu.flags.N, (cpu.A&0x80) == 0)
+	cpu.setFlag(cpu.flags.N, (cpu.A&0x80) > 0)
 
 	return 1
 }
@@ -557,6 +571,22 @@ func (cpu *CPU6502) rts() uint8 {
 }
 
 func (cpu *CPU6502) sbc() uint8 {
+	cpu.fetch()
+
+	data := uint16(cpu.fetched) ^ 0x00FF
+
+	tmp := uint16(cpu.A) + data + uint16(cpu.getFlag(cpu.flags.C))
+	cpu.setFlag(cpu.flags.C, (tmp&0xFF00) > 0)
+	cpu.setFlag(cpu.flags.Z, (tmp&0x00FF) == 0)
+	cpu.setFlag(cpu.flags.N, (tmp&0x80) > 0)
+
+	cpu.setFlag(
+		cpu.flags.V,
+		((^(uint16(cpu.A)^data)&(uint16(cpu.A)^tmp))&0x0080) > 0,
+	)
+
+	cpu.A = uint8(tmp & 0x00FF)
+
 	return 0
 }
 
