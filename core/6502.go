@@ -100,9 +100,27 @@ func (cpu *CPU6502) clock() {
 	cpu.cycles--
 }
 
-func (cpu *CPU6502) reset() {}
-func (cpu *CPU6502) irq()   {}
-func (cpu *CPU6502) nmi()   {}
+func (cpu *CPU6502) reset() {
+	cpu.A = 0
+	cpu.X = 0
+	cpu.Y = 0
+	cpu.Sp = 0xFD // Stack Pointer is decremented by 3 (0x0100 - 0x0003 = 0xFD)
+	cpu.Status = 0x00 | cpu.flags.U
+
+	cpu.addrAbs = 0xFFFC
+	lb := uint16(cpu.Read(cpu.addrAbs))
+	hb := uint16(cpu.Read(cpu.addrAbs + 1))
+
+	cpu.Pc = (hb << 8) | lb
+
+	cpu.addrRel = 0x0000
+	cpu.addrAbs = 0x0000
+	cpu.fetched = 0x00
+
+	cpu.cycles = 8
+}
+func (cpu *CPU6502) irq() {}
+func (cpu *CPU6502) nmi() {}
 
 func (cpu *CPU6502) fetch() uint8 {
 	if cpu.isImp {
