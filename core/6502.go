@@ -295,7 +295,7 @@ func (cpu *CPU6502) and() uint8 {
 	cpu.A = cpu.A & cpu.fetched
 
 	cpu.setFlag(cpu.flags.Z, cpu.A == 0x00)
-	cpu.setFlag(cpu.flags.N, (cpu.A&0x80) > 0)
+	cpu.setFlag(cpu.flags.N, (cpu.A&0x80) == 0)
 
 	return 1
 }
