@@ -539,18 +539,36 @@ func (cpu *CPU6502) ora() uint8 {
 }
 
 func (cpu *CPU6502) pha() uint8 {
+	cpu.Write(0x0100+uint16(cpu.Sp), cpu.A)
+	cpu.Sp--
+
 	return 0
 }
 
 func (cpu *CPU6502) php() uint8 {
+	cpu.Write(0x0100+uint16(cpu.Sp), cpu.Status|cpu.flags.B|cpu.flags.U)
+	cpu.setFlag(cpu.flags.B, false)
+	cpu.setFlag(cpu.flags.U, false)
+	cpu.Sp--
+
 	return 0
 }
 
 func (cpu *CPU6502) pla() uint8 {
+	cpu.Sp++
+	cpu.A = cpu.Read(0x0100 + uint16(cpu.Sp))
+
+	cpu.setFlag(cpu.flags.Z, cpu.A == 0x00)
+	cpu.setFlag(cpu.flags.N, cpu.A&0x80 > 0)
+
 	return 0
 }
 
 func (cpu *CPU6502) plp() uint8 {
+	cpu.Sp++
+	cpu.Status = cpu.Read(0x0100 + uint16(cpu.Sp))
+	cpu.setFlag(cpu.flags.U, true)
+
 	return 0
 }
 
