@@ -433,18 +433,22 @@ func (cpu *CPU6502) bvs() uint8 {
 }
 
 func (cpu *CPU6502) clc() uint8 {
+	cpu.setFlag(cpu.flags.C, false)
 	return 0
 }
 
 func (cpu *CPU6502) cld() uint8 {
+	cpu.setFlag(cpu.flags.D, false)
 	return 0
 }
 
 func (cpu *CPU6502) cli() uint8 {
+	cpu.setFlag(cpu.flags.I, false)
 	return 0
 }
 
 func (cpu *CPU6502) clv() uint8 {
+	cpu.setFlag(cpu.flags.V, false)
 	return 0
 }
 
