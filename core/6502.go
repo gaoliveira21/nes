@@ -305,14 +305,47 @@ func (cpu *CPU6502) asl() uint8 {
 }
 
 func (cpu *CPU6502) bcc() uint8 {
+	if cpu.getFlag(cpu.flags.C) == 0 {
+		cpu.cycles++
+		cpu.addrAbs = cpu.Pc + cpu.addrRel
+
+		if (cpu.addrAbs & 0xFF00) != (cpu.Pc & 0xFF00) {
+			cpu.cycles++
+		}
+
+		cpu.Pc = cpu.addrAbs
+	}
+
 	return 0
 }
 
 func (cpu *CPU6502) bcs() uint8 {
+	if cpu.getFlag(cpu.flags.C) == 1 {
+		cpu.cycles++
+		cpu.addrAbs = cpu.Pc + cpu.addrRel
+
+		if (cpu.addrAbs & 0xFF00) != (cpu.Pc & 0xFF00) {
+			cpu.cycles++
+		}
+
+		cpu.Pc = cpu.addrAbs
+	}
+
 	return 0
 }
 
 func (cpu *CPU6502) beq() uint8 {
+	if cpu.getFlag(cpu.flags.Z) == 1 {
+		cpu.cycles++
+		cpu.addrAbs = cpu.Pc + cpu.addrRel
+
+		if (cpu.addrAbs & 0xFF00) != (cpu.Pc & 0xFF00) {
+			cpu.cycles++
+		}
+
+		cpu.Pc = cpu.addrAbs
+	}
+
 	return 0
 }
 
@@ -321,14 +354,47 @@ func (cpu *CPU6502) bit() uint8 {
 }
 
 func (cpu *CPU6502) bmi() uint8 {
+	if cpu.getFlag(cpu.flags.N) == 1 {
+		cpu.cycles++
+		cpu.addrAbs = cpu.Pc + cpu.addrRel
+
+		if (cpu.addrAbs & 0xFF00) != (cpu.Pc & 0xFF00) {
+			cpu.cycles++
+		}
+
+		cpu.Pc = cpu.addrAbs
+	}
+
 	return 0
 }
 
 func (cpu *CPU6502) bne() uint8 {
+	if cpu.getFlag(cpu.flags.Z) == 0 {
+		cpu.cycles++
+		cpu.addrAbs = cpu.Pc + cpu.addrRel
+
+		if (cpu.addrAbs & 0xFF00) != (cpu.Pc & 0xFF00) {
+			cpu.cycles++
+		}
+
+		cpu.Pc = cpu.addrAbs
+	}
+
 	return 0
 }
 
 func (cpu *CPU6502) bpl() uint8 {
+	if cpu.getFlag(cpu.flags.N) == 0 {
+		cpu.cycles++
+		cpu.addrAbs = cpu.Pc + cpu.addrAbs
+
+		if (cpu.addrAbs & 0xFF00) != (cpu.Pc & 0xFF00) {
+			cpu.cycles++
+		}
+
+		cpu.Pc = cpu.addrAbs
+	}
+
 	return 0
 }
 
@@ -337,10 +403,32 @@ func (cpu *CPU6502) brk() uint8 {
 }
 
 func (cpu *CPU6502) bvc() uint8 {
+	if cpu.getFlag(cpu.flags.V) == 0 {
+		cpu.cycles++
+		cpu.addrAbs = cpu.Pc + cpu.addrRel
+
+		if (cpu.addrAbs & 0xFF00) != (cpu.Pc & 0xFF00) {
+			cpu.cycles++
+		}
+
+		cpu.Pc = cpu.addrAbs
+	}
+
 	return 0
 }
 
 func (cpu *CPU6502) bvs() uint8 {
+	if cpu.getFlag(cpu.flags.V) == 1 {
+		cpu.cycles++
+		cpu.addrAbs = cpu.Pc + cpu.addrRel
+
+		if (cpu.addrAbs & 0xFF00) != (cpu.Pc & 0xFF00) {
+			cpu.cycles++
+		}
+
+		cpu.Pc = cpu.addrAbs
+	}
+
 	return 0
 }
 
