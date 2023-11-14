@@ -385,6 +385,20 @@ func (cpu *CPU6502) and() uint8 {
 }
 
 func (cpu *CPU6502) asl() uint8 {
+	cpu.fetch()
+
+	tmp := uint16(cpu.fetched) << 1
+
+	cpu.setFlag(cpu.flags.Z, (tmp&0x00FF) == 0x00)
+	cpu.setFlag(cpu.flags.N, tmp&0x80 > 0)
+	cpu.setFlag(cpu.flags.C, (tmp&0xFF00) > 0)
+
+	if cpu.isImp {
+		cpu.A = uint8(tmp & 0x00FF)
+	} else {
+		cpu.Write(cpu.addrAbs, uint8(tmp&0x00FF))
+	}
+
 	return 0
 }
 
@@ -434,6 +448,14 @@ func (cpu *CPU6502) beq() uint8 {
 }
 
 func (cpu *CPU6502) bit() uint8 {
+	cpu.fetch()
+
+	tmp := cpu.A & cpu.fetched
+
+	cpu.setFlag(cpu.flags.Z, tmp == 0x00)
+	cpu.setFlag(cpu.flags.N, cpu.fetched&(1<<7) > 0)
+	cpu.setFlag(cpu.flags.V, cpu.fetched&(1<<6) > 0)
+
 	return 0
 }
 
@@ -483,6 +505,25 @@ func (cpu *CPU6502) bpl() uint8 {
 }
 
 func (cpu *CPU6502) brk() uint8 {
+	cpu.Pc++
+	cpu.setFlag(cpu.flags.I, true)
+
+	cpu.Write(0x0100+uint16(cpu.Sp), uint8((cpu.Pc)>>8)&0x00FF)
+	cpu.Sp--
+
+	cpu.Write(0x0100+uint16(cpu.Sp), uint8(cpu.Pc)&0x00FF)
+	cpu.Sp--
+
+	cpu.setFlag(cpu.flags.B, true)
+	cpu.Write(0x0100+uint16(cpu.Sp), cpu.Status)
+	cpu.Sp--
+	cpu.setFlag(cpu.flags.B, false)
+
+	lb := uint16(cpu.Read(0xFFFE))
+	hb := uint16(cpu.Read(0xFFFF))
+
+	cpu.Pc = (hb << 8) | lb
+
 	return 0
 }
 
