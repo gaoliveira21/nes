@@ -1,5 +1,7 @@
 package core
 
+import "log"
+
 type Instruction struct {
 	Name      string
 	Operation func() uint8
@@ -81,12 +83,18 @@ func (cpu *CPU6502) Read(addr uint16) uint8 {
 	return cpu.bus.Read(addr, false)
 }
 
+func (cpu *CPU6502) Exec() {
+	cpu.clock()
+}
+
 func (cpu *CPU6502) clock() {
 	if cpu.cycles == 0 {
 		cpu.opcode = cpu.Read(cpu.Pc)
 		cpu.Pc++
 
 		instruction := cpu.instructions[cpu.opcode]
+
+		log.Printf("[0x%X] %s (PC - 0x%X) Z: %d", cpu.opcode, instruction.Name, cpu.Pc, cpu.getFlag(cpu.flags.Z))
 
 		cpu.cycles = instruction.Cycles
 
@@ -541,14 +549,32 @@ func (cpu *CPU6502) cpy() uint8 {
 }
 
 func (cpu *CPU6502) dec() uint8 {
+	cpu.fetch()
+
+	tmp := cpu.fetched - 1
+	cpu.Write(cpu.addrAbs, tmp)
+
+	cpu.setFlag(cpu.flags.Z, tmp == 0x00)
+	cpu.setFlag(cpu.flags.N, tmp&0x80 > 0)
+
 	return 0
 }
 
 func (cpu *CPU6502) dex() uint8 {
+	cpu.X--
+
+	cpu.setFlag(cpu.flags.Z, cpu.X == 0x00)
+	cpu.setFlag(cpu.flags.N, cpu.X&0x80 > 0)
+
 	return 0
 }
 
 func (cpu *CPU6502) dey() uint8 {
+	cpu.Y--
+
+	cpu.setFlag(cpu.flags.Z, cpu.Y == 0x00)
+	cpu.setFlag(cpu.flags.Z, cpu.Y&0x80 > 0)
+
 	return 0
 }
 
