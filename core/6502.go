@@ -578,14 +578,38 @@ func (cpu *CPU6502) clv() uint8 {
 }
 
 func (cpu *CPU6502) cmp() uint8 {
-	return 0
+	cpu.fetch()
+
+	tmp := uint16(cpu.A) - uint16(cpu.fetched)
+
+	cpu.setFlag(cpu.flags.Z, tmp&0x00FF == 0x00)
+	cpu.setFlag(cpu.flags.N, tmp&0x0080 > 0)
+	cpu.setFlag(cpu.flags.C, cpu.A >= cpu.fetched)
+
+	return 1
 }
 
 func (cpu *CPU6502) cpx() uint8 {
+	cpu.fetch()
+
+	tmp := uint16(cpu.X) - uint16(cpu.fetched)
+
+	cpu.setFlag(cpu.flags.Z, tmp&0x00FF == 0x00)
+	cpu.setFlag(cpu.flags.N, tmp&0x0080 > 0)
+	cpu.setFlag(cpu.flags.C, cpu.X >= cpu.fetched)
+
 	return 0
 }
 
 func (cpu *CPU6502) cpy() uint8 {
+	cpu.fetch()
+
+	tmp := uint16(cpu.X) - uint16(cpu.fetched)
+
+	cpu.setFlag(cpu.flags.Z, tmp&0x00FF == 0x00)
+	cpu.setFlag(cpu.flags.N, tmp&0x0080 > 0)
+	cpu.setFlag(cpu.flags.C, cpu.X >= cpu.fetched)
+
 	return 0
 }
 
