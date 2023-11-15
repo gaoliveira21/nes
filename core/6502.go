@@ -644,7 +644,15 @@ func (cpu *CPU6502) dey() uint8 {
 }
 
 func (cpu *CPU6502) eor() uint8 {
-	return 0
+
+	cpu.fetch()
+
+	cpu.A = cpu.A ^ cpu.fetched
+
+	cpu.setFlag(cpu.flags.Z, cpu.A == 0x00)
+	cpu.setFlag(cpu.flags.N, cpu.A&0x80 > 0)
+
+	return 1
 }
 
 func (cpu *CPU6502) inc() uint8 {
