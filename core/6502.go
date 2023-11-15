@@ -686,10 +686,22 @@ func (cpu *CPU6502) iny() uint8 {
 }
 
 func (cpu *CPU6502) jmp() uint8 {
+	cpu.Pc = cpu.addrAbs
+
 	return 0
 }
 
 func (cpu *CPU6502) jsr() uint8 {
+	cpu.Pc--
+
+	cpu.Write(0x0100+uint16(cpu.Sp), uint8((cpu.Pc>>8)&0x00FF))
+	cpu.Sp--
+
+	cpu.Write(0x0100+uint16(cpu.Sp), uint8(cpu.Pc&0x00FF))
+	cpu.Sp--
+
+	cpu.Pc = cpu.addrAbs
+
 	return 0
 }
 
