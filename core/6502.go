@@ -738,6 +738,20 @@ func (cpu *CPU6502) ldy() uint8 {
 }
 
 func (cpu *CPU6502) lsr() uint8 {
+	cpu.fetch()
+
+	tmp := cpu.fetched >> 1
+
+	cpu.setFlag(cpu.flags.N, false)
+	cpu.setFlag(cpu.flags.Z, tmp == 0x00)
+	cpu.setFlag(cpu.flags.C, cpu.fetched&0x01 > 0)
+
+	if cpu.isImp {
+		cpu.A = tmp
+	} else {
+		cpu.Write(cpu.addrAbs, tmp)
+	}
+
 	return 0
 }
 
