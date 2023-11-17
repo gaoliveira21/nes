@@ -815,10 +815,38 @@ func (cpu *CPU6502) plp() uint8 {
 }
 
 func (cpu *CPU6502) rol() uint8 {
+	cpu.fetch()
+
+	tmp := (uint16(cpu.fetched) << 1) | uint16(cpu.getFlag(cpu.flags.C))
+
+	cpu.setFlag(cpu.flags.C, tmp&0xFF00 > 0)
+	cpu.setFlag(cpu.flags.Z, tmp&0x00FF == 0x0000)
+	cpu.setFlag(cpu.flags.N, tmp&0x00FF == 0x0080)
+
+	if cpu.isImp {
+		cpu.A = uint8(tmp & 0x00FF)
+	} else {
+		cpu.Write(cpu.addrAbs, uint8(tmp&0x00FF))
+	}
+
 	return 0
 }
 
 func (cpu *CPU6502) ror() uint8 {
+	cpu.fetch()
+
+	tmp := uint16(cpu.getFlag(cpu.flags.C)<<7) | uint16(cpu.fetched>>1)
+
+	cpu.setFlag(cpu.flags.C, cpu.fetched&0x01 > 0)
+	cpu.setFlag(cpu.flags.Z, tmp&0x00FF == 0x0000)
+	cpu.setFlag(cpu.flags.N, tmp&0x0080 > 0)
+
+	if cpu.isImp {
+		cpu.A = uint8(tmp & 0x00FF)
+	} else {
+		cpu.Write(cpu.addrAbs, uint8(tmp&0x00FF))
+	}
+
 	return 0
 }
 
