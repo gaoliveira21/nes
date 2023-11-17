@@ -706,15 +706,35 @@ func (cpu *CPU6502) jsr() uint8 {
 }
 
 func (cpu *CPU6502) lda() uint8 {
-	return 0
+	cpu.fetch()
+
+	cpu.A = cpu.fetched
+
+	cpu.setFlag(cpu.flags.Z, cpu.A == 0x00)
+	cpu.setFlag(cpu.flags.N, cpu.A&0x80 > 0)
+
+	return 1
 }
 
 func (cpu *CPU6502) ldx() uint8 {
-	return 0
-}
+	cpu.fetch()
 
+	cpu.X = cpu.fetched
+
+	cpu.setFlag(cpu.flags.Z, cpu.X == 0x00)
+	cpu.setFlag(cpu.flags.N, cpu.X&0x80 > 0)
+
+	return 1
+}
 func (cpu *CPU6502) ldy() uint8 {
-	return 0
+	cpu.fetch()
+
+	cpu.Y = cpu.fetched
+
+	cpu.setFlag(cpu.flags.Z, cpu.Y == 0x00)
+	cpu.setFlag(cpu.flags.N, cpu.Y&0x80 > 0)
+
+	return 1
 }
 
 func (cpu *CPU6502) lsr() uint8 {
