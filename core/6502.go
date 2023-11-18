@@ -870,6 +870,15 @@ func (cpu *CPU6502) rti() uint8 {
 }
 
 func (cpu *CPU6502) rts() uint8 {
+	cpu.Sp++
+	lb := uint16(cpu.Read(0x0100 + uint16(cpu.Sp)))
+
+	cpu.Sp++
+	hb := uint16(cpu.Read(0x0100 + uint16(cpu.Sp)))
+
+	cpu.Pc = (hb << 8) | lb
+	cpu.Pc++
+
 	return 0
 }
 
