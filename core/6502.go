@@ -108,7 +108,7 @@ func (cpu *CPU6502) clock() {
 	cpu.cycles--
 }
 
-func (cpu *CPU6502) reset() {
+func (cpu *CPU6502) Reset() {
 	cpu.A = 0
 	cpu.X = 0
 	cpu.Y = 0
@@ -128,7 +128,7 @@ func (cpu *CPU6502) reset() {
 	cpu.cycles = 8
 }
 
-func (cpu *CPU6502) irq() {
+func (cpu *CPU6502) IRQ() {
 	if cpu.getFlag(cpu.flags.I) == 0 {
 		cpu.Write(0x0100+uint16(cpu.Sp), uint8((cpu.Pc>>8)&0x00FF))
 		cpu.Sp--
@@ -152,7 +152,7 @@ func (cpu *CPU6502) irq() {
 	}
 }
 
-func (cpu *CPU6502) nmi() {
+func (cpu *CPU6502) NMI() {
 	cpu.Write(0x0100+uint16(cpu.Sp), uint8((cpu.Pc>>8)&0x00FF))
 	cpu.Sp--
 
