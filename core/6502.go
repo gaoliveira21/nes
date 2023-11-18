@@ -903,26 +903,32 @@ func (cpu *CPU6502) sbc() uint8 {
 }
 
 func (cpu *CPU6502) sec() uint8 {
+	cpu.setFlag(cpu.flags.C, true)
 	return 0
 }
 
 func (cpu *CPU6502) sed() uint8 {
+	cpu.setFlag(cpu.flags.D, true)
 	return 0
 }
 
 func (cpu *CPU6502) sei() uint8 {
+	cpu.setFlag(cpu.flags.I, true)
 	return 0
 }
 
 func (cpu *CPU6502) sta() uint8 {
+	cpu.Write(cpu.addrAbs, cpu.A)
 	return 0
 }
 
 func (cpu *CPU6502) stx() uint8 {
+	cpu.Write(cpu.addrAbs, cpu.X)
 	return 0
 }
 
 func (cpu *CPU6502) sty() uint8 {
+	cpu.Write(cpu.addrAbs, cpu.Y)
 	return 0
 }
 
