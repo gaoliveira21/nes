@@ -933,26 +933,53 @@ func (cpu *CPU6502) sty() uint8 {
 }
 
 func (cpu *CPU6502) tax() uint8 {
+	cpu.X = cpu.A
+
+	cpu.setFlag(cpu.flags.Z, cpu.X == 0x00)
+	cpu.setFlag(cpu.flags.N, cpu.X&0x80 > 0)
+
 	return 0
 }
 
 func (cpu *CPU6502) tay() uint8 {
+	cpu.Y = cpu.A
+
+	cpu.setFlag(cpu.flags.Z, cpu.Y == 0x00)
+	cpu.setFlag(cpu.flags.N, cpu.Y&0x80 > 0)
+
 	return 0
 }
 
 func (cpu *CPU6502) tsx() uint8 {
+	cpu.X = cpu.Sp
+
+	cpu.setFlag(cpu.flags.Z, cpu.X == 0x00)
+	cpu.setFlag(cpu.flags.N, cpu.X&0x80 > 0)
+
 	return 0
 }
 
 func (cpu *CPU6502) txa() uint8 {
+	cpu.A = cpu.X
+
+	cpu.setFlag(cpu.flags.Z, cpu.A == 0x00)
+	cpu.setFlag(cpu.flags.N, cpu.A&0x80 > 0)
+
 	return 0
 }
 
 func (cpu *CPU6502) txs() uint8 {
+	cpu.Sp = cpu.X
+
 	return 0
 }
 
 func (cpu *CPU6502) tya() uint8 {
+	cpu.A = cpu.Y
+
+	cpu.setFlag(cpu.flags.Z, cpu.A == 0x00)
+	cpu.setFlag(cpu.flags.N, cpu.A&0x80 > 0)
+
 	return 0
 }
 
