@@ -175,11 +175,11 @@ func (cpu *CPU6502) NMI() {
 }
 
 func (cpu *CPU6502) fetch() uint8 {
-	if cpu.isImp {
-		return cpu.fetched
+	if !cpu.isImp {
+		cpu.fetched = cpu.Read(cpu.addrAbs)
 	}
 
-	return cpu.Read(cpu.addrAbs)
+	return cpu.fetched
 }
 
 func (cpu *CPU6502) getFlag(flag uint8) uint8 {
@@ -492,7 +492,7 @@ func (cpu *CPU6502) bne() uint8 {
 func (cpu *CPU6502) bpl() uint8 {
 	if cpu.getFlag(cpu.flags.N) == 0 {
 		cpu.cycles++
-		cpu.addrAbs = cpu.Pc + cpu.addrAbs
+		cpu.addrAbs = cpu.Pc + cpu.addrRel
 
 		if (cpu.addrAbs & 0xFF00) != (cpu.Pc & 0xFF00) {
 			cpu.cycles++
@@ -604,11 +604,11 @@ func (cpu *CPU6502) cpx() uint8 {
 func (cpu *CPU6502) cpy() uint8 {
 	cpu.fetch()
 
-	tmp := uint16(cpu.X) - uint16(cpu.fetched)
+	tmp := uint16(cpu.Y) - uint16(cpu.fetched)
 
 	cpu.setFlag(cpu.flags.Z, tmp&0x00FF == 0x00)
 	cpu.setFlag(cpu.flags.N, tmp&0x0080 > 0)
-	cpu.setFlag(cpu.flags.C, cpu.X >= cpu.fetched)
+	cpu.setFlag(cpu.flags.C, cpu.Y >= cpu.fetched)
 
 	return 0
 }
@@ -638,7 +638,7 @@ func (cpu *CPU6502) dey() uint8 {
 	cpu.Y--
 
 	cpu.setFlag(cpu.flags.Z, cpu.Y == 0x00)
-	cpu.setFlag(cpu.flags.Z, cpu.Y&0x80 > 0)
+	cpu.setFlag(cpu.flags.N, cpu.Y&0x80 > 0)
 
 	return 0
 }
