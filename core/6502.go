@@ -1,6 +1,8 @@
 package core
 
-import "log"
+import (
+	"log"
+)
 
 type Instruction struct {
 	Name      string
@@ -223,7 +225,7 @@ func (cpu *CPU6502) zp0() uint8 {
 }
 
 func (cpu *CPU6502) zpx() uint8 {
-	b := uint16(cpu.Read(cpu.Pc) + cpu.X)
+	b := uint16(cpu.Read(cpu.Pc)) + uint16(cpu.X)
 	cpu.Pc++
 
 	cpu.addrAbs = b & 0x00FF
@@ -232,7 +234,7 @@ func (cpu *CPU6502) zpx() uint8 {
 }
 
 func (cpu *CPU6502) zpy() uint8 {
-	b := uint16(cpu.Read(cpu.Pc) + cpu.Y)
+	b := uint16(cpu.Read(cpu.Pc)) + uint16(cpu.Y)
 	cpu.Pc++
 
 	cpu.addrAbs = b & 0x00FF
@@ -314,11 +316,11 @@ func (cpu *CPU6502) ind() uint8 {
 }
 
 func (cpu *CPU6502) izx() uint8 {
-	b := cpu.Read(cpu.Pc)
+	b := uint16(cpu.Read(cpu.Pc))
 	cpu.Pc++
 
-	lb := uint16(cpu.Read((uint16(b + cpu.X)) & 0x00FF))
-	hb := uint16(cpu.Read(uint16(b+cpu.X+1) & 0x00FF))
+	lb := uint16(cpu.Read((b + uint16(cpu.X)) & 0x00FF))
+	hb := uint16(cpu.Read((b + uint16(cpu.X) + 1) & 0x00FF))
 
 	cpu.addrAbs = (hb << 8) | lb
 
@@ -582,7 +584,7 @@ func (cpu *CPU6502) cmp() uint8 {
 
 	tmp := uint16(cpu.A) - uint16(cpu.fetched)
 
-	cpu.setFlag(cpu.flags.Z, tmp&0x00FF == 0x00)
+	cpu.setFlag(cpu.flags.Z, tmp&0x00FF == 0x0000)
 	cpu.setFlag(cpu.flags.N, tmp&0x0080 > 0)
 	cpu.setFlag(cpu.flags.C, cpu.A >= cpu.fetched)
 
@@ -606,7 +608,7 @@ func (cpu *CPU6502) cpy() uint8 {
 
 	tmp := uint16(cpu.Y) - uint16(cpu.fetched)
 
-	cpu.setFlag(cpu.flags.Z, tmp&0x00FF == 0x00)
+	cpu.setFlag(cpu.flags.Z, tmp&0x00FF == 0x0000)
 	cpu.setFlag(cpu.flags.N, tmp&0x0080 > 0)
 	cpu.setFlag(cpu.flags.C, cpu.Y >= cpu.fetched)
 
